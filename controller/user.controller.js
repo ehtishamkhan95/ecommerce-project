@@ -66,7 +66,7 @@ export const updateSingleUser = async (req, res) => {
             res.status(200).json(user)
         }
     } catch (error) {
-        res.status(400).json({message: "Error: Couldn't update user"})
+        res.status(404).json({message: "Error: Couldn't update, user not found"})
     }
 }
 
@@ -79,6 +79,6 @@ export const deleteSingleUser = async(req, res) => {
             res.status(200).json({message: "Successfully deleted user"})
         }
     } catch (error){
-        res.status(400).json({message: "Error: Couldn't delete user"})
+        res.status(404).json({message: "Error: Couldn't delete. User not found"})
     }
 }
