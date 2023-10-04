@@ -21,7 +21,7 @@ export const createUser = async(req, res) => {
             lastName,
         })
         await newUser.save()
-        res.status(200).json(newUser)
+        res.status(201).json(newUser)
 
     } catch(error){
         res.status(400).json({message:"Error: User couldn't be created."})
@@ -76,7 +76,7 @@ export const deleteSingleUser = async(req, res) => {
         const {id} = req.params;
         const user = await User.findByIdAndDelete(id)
         if (user){
-            res.status(200).json({message: "Successfully deleted user"})
+            res.status(204).json({message: "Successfully deleted user"})
         }
     } catch (error){
         res.status(404).json({message: "Error: Couldn't delete. User not found"})
