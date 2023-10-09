@@ -42,14 +42,14 @@ export async function addToCart(req,res){
 }
 
 export async function updateItems(req){
-    const productId = req.params.productId
+    const {productId} = req.params
     const {userId} = req.body;
     const newQuantity = req.body.quantity
     
-    const cart= await Cart.findOne({userId});
-    const productIdCheck = await Cart.findOne({"item.productId": productId});
-    if (productIdCheck){
-        cart.item.quantity += newQuantity
+    const cart = await Cart.findOne({userId});
+    const itemToUpdate  = cart.item.find((item) => item.productId.toString() === productId);
+    if (itemToUpdate ){
+        itemToUpdate.quantity += newQuantity
     }
 
     await cart.save();
@@ -67,10 +67,10 @@ export async function removeCartItems(req){
     const {userId} = req.body;
     const newQuantity = req.body.quantity
     
-    const cart= await Cart.findOne({userId});
-    const productIdCheck = await Cart.findOne({"item.productId": productId});
-    if (productIdCheck){
-        cart.item.quantity -= newQuantity
+    const cart = await Cart.findOne({userId});
+    const itemToUpdate  = cart.item.find((item) => item.productId.toString() === productId);
+    if (itemToUpdate ){
+        itemToUpdate.quantity -= newQuantity
     }
 
     await cart.save();
