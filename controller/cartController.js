@@ -7,13 +7,14 @@ export const newCart = async (req, res) => {
         res.status(201).json({ message: 'Cart created successfully', newCart });
         }
      catch (error) {
-        res.status(500).json({ message: 'Failed to create cart', error: error.message });    }
+        res.status(500).json({ message: 'Failed to create cart', error: error.message });
+    }
 }
 
 //add cart items
 export const addItemsToCart = async(req,res)=>{
     try{
-        const cart = await addToCart(req,resizeTo);
+        const cart = await addToCart(req);
         res.status(200).json({ message: 'Item added to cart successfully', cart});
     } catch(error){
         res.status(500).json({ message: 'Failed to add item to cart', error: error.message });

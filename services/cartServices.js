@@ -15,7 +15,7 @@ export async function createCart(req, res){
         return res.status(400).json({message: 'A cart already exists for this user'});
     }
 
-    const newCart = new Cart({user:userId, items:[]});
+    const newCart = new Cart({userId, items:[]});
     await newCart.save();
     return newCart;
 }
@@ -29,8 +29,8 @@ export async function addToCart(req,res){
     if (!productIdCheck){
         return res.status(404).json({message: "Product doesn't exist"});
     }
-    const cart = await Cart.findOne(userId);
-    const existingItems = await cart.findOne({"item.productId":newProductId})
+    const cart = await Cart.findOne({userId});
+    const existingItems = await Cart.findOne({userId, 'item.productId':newProductId})
     if (existingItems){
         cart.item.quantity += newQuantity
     } else {
