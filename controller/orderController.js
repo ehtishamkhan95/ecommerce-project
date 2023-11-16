@@ -5,26 +5,26 @@ import {transporter} from '../utils/email.js'
 // create order
 export const createOrder = async (req,res) => {
     try{
-        const {cartId, shippingAddress,
+        const {items, totalOrderPrice, shippingAddress,
             paymentMethod, transactionId} = req.body;
         
         const {userId} = req.user;
    
-        if (userId && cartId && shippingAddress && paymentMethod
+        if (userId && items && totalOrderPrice && shippingAddress && paymentMethod
                 && transactionId){
             
-            const order = new Order({userId, cartId, shippingAddress,
+            const order = new Order({userId, items, totalOrderPrice, shippingAddress,
                 paymentMethod, transactionId});
         
             await order.save();
-            return res.status(200).json(order)
+            return res.status(200).send(order)
     
         } else{
-            return res.status(400).json({message: "Please provide all required fields."})
+            return res.status(400).send({message: "Please provide all required fields."})
         }
 
     } catch (error){
-        res.status(400).json(error.message)
+        res.status(400).send(error.message)
     }
 }
 
@@ -35,7 +35,7 @@ export const orderStatusUpdate = async (req,res) => {
         
         let order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({message: "Order doesn't exist"})
+            return res.status(404).send({message: "Order doesn't exist"})
         }
         order.orderStatus = orderStatus;
         await order.save();
@@ -52,14 +52,14 @@ export const orderStatusUpdate = async (req,res) => {
         transporter.sendMail(mailOptions, (error)=>{
             if(error){
             console.error('Error sending email:', error);
-            return res.status(500).json({error: 'Internal server error'});
+            return res.status(500).send({error: 'Internal server error'});
             } 
         });
         
-        res.status(200).json({message: "Order status updated successfully", order})
+        res.status(200).send({message: "Order status updated successfully", order})
 
     } catch(error){
-        res.status(400).json({message: error.message})
+        res.status(400).send({message: error.message})
     }
 }
 
@@ -71,14 +71,43 @@ export const getUserOrders = async (req,res) => {
 
         const orders = await Order.find({userId})
         .populate('userId', 'username email firstName lastName')
-        .populate('cartId', 'items totalCartPrice')
+        .populate('items.productId', 'title price productPicUrl')
         .skip((page-1)*pageLimit)
         .limit(pageLimit);
         
-        res.status(200).json(orders);
+        res.status(200).send(orders);
 
     } catch (error) {
-        res.status(400).json({message: error.message})
+        res.status(400).send({message: error.message})
     }
 }
 
+
+export const getSingleOrder = async (req,res) => {
+    try {
+        const {orderId} = req.params
+
+        const orders = await Order.findById(orderId)
+        .populate('userId', 'username email firstName lastName')
+        .populate('items.productId', 'title price productPicUrl')
+
+        res.status(200).send(orders);
+
+    } catch (error) {
+        res.status(400).send({message: error.message})
+    }
+}
+
+export const getAllOrder = async (req,res) => {
+    try {
+
+        const orders = await Order.find()
+        .populate('userId', 'username email firstName lastName')
+        .populate('items.productId', 'title price productPicUrl')
+        
+        res.status(200).send(orders);
+
+    } catch (error) {
+        res.status(400).send({message: error.message})
+    }
+}

@@ -5,13 +5,12 @@ import Product from "../models/productModel.js"
 //create cart
 export const createCart = async (req,res) => {
     try{
-        const {userId} = req.user;
-        console.log(req.user)
+        const {userId} = req.body;
 
         let user = await User.findById(userId)
 
         if (!user) {
-            return res.status(404).json({message: "User doesn't exist"})
+            return res.status(404).send({message: "User doesn't exist"})
         }
 
         let cart = await Cart.findOne({userId});
@@ -20,13 +19,13 @@ export const createCart = async (req,res) => {
             cart = new Cart({userId, items:[]});
             await cart.save();
         } else {
-            return res.status(400).json({message:"Cart already exists for user."})
+            return res.status(400).send({message:"Cart already exists for user."})
         }
     
-        res.status(200).json({message: "Cart created successfully.", cart})
+        res.status(200).send({message: "Cart created successfully.", cart})
 
     } catch (error) {
-        res.status(400).json(error.message)
+        res.status(400).send(error.message)
     }
 }
 
@@ -39,7 +38,7 @@ export const addProductToCart = async (req,res)=>{
         const product = await Product.findById(productId);
 
         if (!product){
-            return res.status(404).json({message: "Product doesn't exist"});
+            return res.status(404).send({message: "Product doesn't exist"});
         }
         
         let cart = await Cart.findOne({userId});
@@ -60,28 +59,28 @@ export const addProductToCart = async (req,res)=>{
         cart.totalCartPrice = totalCartPrice;
 
         await cart.save();
-        res.status(200).json({ message: 'Cart updated.', cart});
+        res.status(200).send({ message: 'Cart updated.', cart});
 
     } catch(error){
-        res.status(500).json(error.message);
+        res.status(500).send(error.message);
     }
 }
 
 //delete cart product
 export const deleteCartProduct = async (req,res) => {
     try{
-        const {productId} = req.body;
+        const {productId} = req.params;
         const {userId} = req.user;
 
         let cart = await Cart.findOne({userId});
         if (!cart) {
-            return res.status(404).json({message: "Cart for user doesn't exist"})
+            return res.status(404).send({message: "Cart for user doesn't exist"})
         }
 
         const productIndex = cart.items.findIndex((item) => item.productId.toString() === productId);
 
         if (productIndex === -1){
-            return res.status(404).json({ message: 'Product is not in the cart' });
+            return res.status(404).send({ message: 'Product is not in the cart' });
         }
 
         console.log(productIndex)
@@ -96,10 +95,10 @@ export const deleteCartProduct = async (req,res) => {
 
         await cart.save();
 
-        res.status(200).json({message: "Product deleted from cart successfully.", cart})
+        res.status(200).send({message: "Product deleted from cart successfully.", cart})
 
     } catch (error){
-        res.status(400).json(error.message)
+        res.status(400).send(error.message)
     }
 }
 
@@ -116,12 +115,35 @@ export const getCartContents = async (req,res) => {
         .limit(pageLimit);
 
         if (!cart) {
-            return res.status(404).json({message: "Cart doesn't exist for the user."})
+            return res.status(404).send({message: "Cart doesn't exist for the user."})
         }
         
-        res.status(200).json(cart);
+        res.status(200).send(cart);
 
     } catch (error){
-        res.status(500).json(error.message);
+        res.status(500).send(error.message);
+    }
+}
+
+//delete all cart products
+export const deleteAllCartProducts = async (req,res) => {
+    try{
+        const {userId} = req.user;
+
+        let cart = await Cart.findOne({userId});
+        if (!cart) {
+            return res.status(404).send({message: "Cart for user doesn't exist"})
+        }
+
+        cart.items = [];
+
+        cart.totalCartPrice = null;
+
+        await cart.save();
+
+        res.status(200).send({message: "Product deleted from cart successfully.", cart})
+
+    } catch (error){
+        res.status(400).send(error.message)
     }
 }

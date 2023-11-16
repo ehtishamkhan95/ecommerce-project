@@ -12,7 +12,7 @@ const cartSchema = new mongoose.Schema({
 
     totalCartPrice: {type: Number},
     createdAt: {type: Date, default: Date.now},
-})
+});
 
 const schema = mongoose.model("carts", cartSchema);
 export default schema

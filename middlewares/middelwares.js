@@ -1,9 +1,7 @@
 import jwt from "jsonwebtoken"
 
 export const verifyToken = (req, res, next) => {
-    let token;
-    let authHeader = req.headers.Authorization || req.headers.authorization;
-    token = authHeader.split(" ")[1];
+    let token = req.cookies.jwt;
   
     if (!token) {
       return res.status(403).send("A token is required for authentication");

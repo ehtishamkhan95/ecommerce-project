@@ -49,12 +49,26 @@ export const login = async(req, res) => {
         if(!passwordMatch) {
             return res.status(401).send({message: 'Email, password or both are incorrect'});
         }
-
-        const token=jwt.sign({userId:user._id, email:user.email}, process.env.SECRET, {expiresIn:"1h"});
-            res.status(200).send({message: "Login successful", token});
-        } catch (error) {
+    
+        const token = jwt.sign({userId:user._id, email:user.email}, process.env.SECRET, {expiresIn:"1h"});
+        console.log(token)
+        res.cookie('jwt', token, { httpOnly: true });
+        res.status(200).send({message: "Login successful", isAdmin: user.isAdmin});
+        
+        
+    } catch (error) {
             res.status(500).send({message: error.message});
-         }
+        }
+}
+
+//user logout
+export const logout = async (req,res) => {
+    try{
+        res.clearCookie('jwt');
+        res.status(200).send({message: "Logout successful"});
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
 }
 
 //get all record
@@ -80,7 +94,21 @@ export const getAllUsers = async(req, res) => {
 export const getSingleUser = async (req, res) => {
     try {
         const {userId} = req.user;
+        const user = await User.findById(userId);
 
+        if(user){
+            res.status(200).send(user);
+        }
+
+    } catch (error){
+            res.status(404).send({message: error.message});
+    }
+}
+
+// find single record for admin
+export const getSingleUserAdmin = async (req, res) => {
+    try {
+        const {userId} = req.params;
         const user = await User.findById(userId);
 
         if(user){
@@ -124,17 +152,17 @@ export const deleteSingleUser = async(req, res) => {
 //reset password
 export const updatePassword = async(req,res) => {
     try{
-        const{oldPassword, newPassword, confirmNewPassword} = req.body;
+        const{currentPassword, newPassword, confirmNewPassword} = req.body;
         const {userId} = req.user;
         const user = await User.findById(userId);
 
-        const passwordValid = await bcrypt.compare(oldPassword, user.password);
+        const passwordValid = await bcrypt.compare(currentPassword, user.password);
         if(!user){
             return res.status(404).send({message: "User doesn't exist"});
         }
 
         if (!passwordValid){
-            return res.status(400).send({message: "Please type correct password"});     
+            return res.status(400).send({message: "Please type correct current password"});     
         }
         
         if(newPassword !== confirmNewPassword){
@@ -147,7 +175,7 @@ export const updatePassword = async(req,res) => {
         res.status(200).send({message: "Password reset successfuly"});
 
     } catch (error){
-        res.status(400).send({message: error.message});
+        res.status(500).send({message: error.message});
     }
 }
 
@@ -190,27 +218,46 @@ export const forgetPassowrdOTP = async (req,res) => {
 //forget password - verify OTP
 export const verifyOtp = async (req,res) => {
     try{
-        const {email, otp, newPassword, confirmNewPassword} = req.body;
+        const {email, otp} = req.body;
         const user = await User.findOne({email});
 
         if (!user) {
-            return res.status(404).send({ error: 'User not found' });
+            return res.status(404).send({ message: 'User not found' });
         }
 
         if (user.resetToken !== otp || new Date() > user.resetTokenExpiration) {
-            return res.status(401).send({error: 'Invalid or expired OTP'});
+            return res.status(401).send({message: 'Invalid or expired OTP'});
+        } else {
+            user.resetToken = undefined;
+            user.resetTokenExpiration = undefined;
+            await user.save();
+
+            return res.status(200).send({message: 'OTP confirmed'});
         }
-   
+
+    } catch (error){
+        res.status(500).send({ message: error.message });
+    }
+}
+
+//Forget Password - Reset Password
+export const resetPassword = async (req,res) => {
+    try{
+        const {email, newPassword, confirmNewPassword} = req.body;
+        const user = await User.findOne({email});
+
+        if (!user) {
+            return res.status(404).send({ message: 'User not found' });
+        }
+
         if(newPassword !==confirmNewPassword){
             return res.status(400).send({message:"Passwords don't match"})
         }
             
         user.password = await bcrypt.hash(newPassword, 10);
-        user.resetToken = undefined;
-        user.resetTokenExpiration = undefined;
         await user.save();
 
-        return res.status(200).send({ message: 'Password reset successful' });
+        return res.status(200).send({ message: 'Password reset successful, redirecting to login' });
 
     } catch (error){
         res.status(500).send({ message: error.message });

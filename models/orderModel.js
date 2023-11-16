@@ -3,12 +3,19 @@ import mongoose from 'mongoose'
 const orderSchema = new mongoose.Schema({
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'users'},
 
-    cartId: {type: mongoose.Schema.Types.ObjectId, ref: 'carts'},
+    items: [{
+            productId:  {type: mongoose.Schema.Types.ObjectId, ref: 'products'},
+            quantity:   {type: Number, default: 1, min: 1, max: 10},
+            totalPrice: {type: Number},
+        }
+    ],
+
+    totalOrderPrice: {type: Number},
 
     orderDate:       {type: Date, default: Date.now},
 
     shippingAddress: {
-        street:     {type: String},
+        area:     {type: String},
         city:       {type: String},
         postalCode: {type: String},
         country:    {type: String},
