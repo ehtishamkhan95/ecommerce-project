@@ -17,12 +17,18 @@ app.use(cors({
 
 app.use("/api", router);
 
-mongoose.connect(process.env.CN_MDB)
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.CN_MDB);
+    console.log(`MongoDB Connected}`);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+}
 
-mongoose.connection.on("connected", ()=>{
-  console.log("Database Connected")
-});
-
-app.listen(process.env.PORT, () =>{
+connectDB().then(() => {
+  app.listen(process.env.PORT, () =>{
     console.log(`Server is working on port: ${process.env.PORT}`)
 });
+})
