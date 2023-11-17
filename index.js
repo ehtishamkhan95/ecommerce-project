@@ -20,7 +20,7 @@ app.use("/api", router);
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.CN_MDB);
-    console.log(`MongoDB Connected}`);
+    console.log(`MongoDB Connected`);
   } catch (error) {
     console.log(error);
     process.exit(1);
