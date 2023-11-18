@@ -11,7 +11,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://main--peaceful-manatee-28482d.netlify.app',
+  origin: 'https://peaceful-manatee-28482d.netlify.app',
   credentials: true,
 }));
 
